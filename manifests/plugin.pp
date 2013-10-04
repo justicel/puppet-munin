@@ -30,9 +30,31 @@ define munin::plugin (
   $linkplugins    = '',
   $content        = '',
   $content_config = '',
+  $install_plugin = false,
+  $plugin_link    = '',
   $enable         = true ) {
 
   $ensure = bool2ensure($enable)
+
+  if $install_plugin {
+
+    if $plugin_link {
+      $targetlink  = "${munin::plugins_dir}/${plugin_link}"
+    }
+    else {
+      $targetlink = "${munin::plugins_dir}/${name}"
+    }
+
+    file { "Munin_plugin_link_${name}":
+      path    => "${munin::conf_dir_active_plugins}/${name}",
+      owner   => root,
+      group   => root,
+      ensure  => link,
+      require => Package['munin-node'],
+      notify  => Service['munin-node'],
+      target => "${targetlink}",
+      }
+  }
 
   if $source {
     file { "Munin_plugin_${name}":
